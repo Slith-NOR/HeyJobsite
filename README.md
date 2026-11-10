@@ -1,4 +1,4 @@
-# Project X
+# HeyJobsite
 
 Construction site check-in and accountability for general contractors. Mobile web app; no install needed.
 
@@ -23,14 +23,16 @@ Stop `npm run dev` before running any `db:*` or `tenant:*` script: the embedded 
 
 ### Signing in locally
 
-Sign-in is by emailed link. In development nothing is sent: messages appear at **http://localhost:3000/dev/inbox**. Seeded accounts:
+There are no passwords. The first sign-in on a device is by emailed link; in development nothing is sent and messages appear at **http://localhost:3000/dev/inbox**. After that the home page offers a passkey (face, fingerprint or screen lock), and the device stays signed in until 60 days without use. Passkeys work on `http://localhost:3000` and on HTTPS, not over a plain-HTTP LAN address. Seeded accounts:
 
 | Email | Role |
 |---|---|
 | `admin@alpha.test` | Admin of tenant "Demo Alpha Builders" |
-| `pat@plumbing.test` | Supervisor, Demo Plumbing Co (Spanish) |
-| `john@drain.test` | Worker, Demo Drain Sub (Haitian Creole) |
+| `pat@plumbing.test` | Supervisor, Demo Plumbing Co |
+| `john@drain.test` | Worker, Demo Drain Sub |
 | `admin@bravo.test` | Admin of unrelated tenant "Demo Bravo Homes" |
+
+On first sign-in everyone picks their language (English, Español, Kreyòl ayisyen); it can be changed later in Settings.
 
 `npm run db:seed` prints a House 12 check-in link. Or sign in as `admin@alpha.test`, open the project, choose **Print QR** for a house, and open the link under the QR code.
 
@@ -56,7 +58,10 @@ To test on a phone on the same Wi-Fi, set `APP_BASE_URL=http://<your-computer-ip
 |---|---|
 | `DATABASE_URL` | Postgres connection string (e.g. Supabase). Empty = local embedded database. Required in production. |
 | `APP_BASE_URL` | Public URL used in emailed links and printed QR codes. Required in production. |
-| `EMAIL_PROVIDER` | `dev` writes to the dev inbox. Production refuses to start with `dev`; a real provider is not implemented yet. |
+| `PASSKEY_RP_ID` | Passkey domain. Production: `heyjobsite.com`. Empty = the `APP_BASE_URL` host. |
+| `EMAIL_PROVIDER` | `dev` writes to the dev inbox; `postmark` sends real email. Production refuses `dev`. |
+| `POSTMARK_SERVER_TOKEN` | Postmark Server API token (secret; set in Vercel, never committed). Production refuses Postmark's test token. |
+| `EMAIL_FROM` / `EMAIL_REPLY_TO` | Defaults `HeyJobsite <no-reply@mail.heyjobsite.com>` / `support@heyjobsite.com`. |
 
 Never commit `.env.local` or real credentials.
 

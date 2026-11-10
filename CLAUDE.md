@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# Project X
+# HeyJobsite
 
 - Spec: `docs/Construction_App_Claude_Roadmap.md`. Status: `docs/ROADMAP.md`. Assumptions: `docs/DECISIONS.md`. Update ROADMAP.md and DECISIONS.md with every increment.
 - Business rules and authorization live in `src/domain/`; pages and server actions in `src/app/` stay thin. Every domain function takes the acting user's ID and derives tenant scope from stored records.

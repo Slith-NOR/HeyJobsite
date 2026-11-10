@@ -1,4 +1,4 @@
-# Project X (working name) — Construction Site Accountability App Roadmap and Claude Prompt
+# HeyJobsite — Construction Site Accountability App Roadmap and Claude Prompt
 
 ## Product goal
 A mobile-first web app lets a general contractor know who checked into each house, which company employs them, who hired that company, what work they performed, and whom to contact. Clients choose their preferred check-in methods: location-assisted property selection, manager-set short house codes, property QR codes, or reusable QR/NFC signs. All work in the browser without mandatory installation. Completion photos and contractor follow-up remain attached to the exact task.
@@ -208,7 +208,7 @@ Copy these into docs/DECISIONS.md during Phase 0.
 - Providers (decided): Next.js, Supabase, Vercel; Twilio later for optional SMS. Email-sending provider: open, choose in Phase 0. The product owner owns the accounts.
 - Phase order (decided): printable QR check-in first; sign packs after tasks/photos.
 - Pilot (decided): two general contractors. Their tenants are set up manually; no self-service signup.
-- Name (decided): "Project X" as the working name. The domain is still open.
+- Name (decided): **HeyJobsite** (was the working name "Project X"). Domain (decided): heyjobsite.com.
 - Native-speaker review of translations: decided later.
 
 ## Ready-to-paste Claude implementation prompt

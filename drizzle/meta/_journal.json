@@ -8,6 +8,27 @@
       "when": 1794160438226,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794185525689,
+      "tag": "0001_cuddly_the_spike",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794185899833,
+      "tag": "0002_stormy_the_enforcers",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794199711100,
+      "tag": "0003_naive_shadow_king",
+      "breakpoints": true
     }
   ]
 }

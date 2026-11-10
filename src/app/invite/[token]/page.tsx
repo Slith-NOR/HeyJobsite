@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getDb } from "@/db";
 import { describeInvite } from "@/domain/people";
 import { t } from "@/i18n";
-import { currentLang, currentUser } from "@/lib/session";
+import { currentLang, currentUser, requireLanguageChosen } from "@/lib/session";
 import { acceptInviteAction } from "../../actions";
 import { ErrorNotice } from "../../Notice";
 
@@ -12,6 +12,7 @@ export default async function InvitePage({ params, searchParams }: Props) {
   const { token } = await params;
   const { error } = await searchParams;
   const [lang, user] = await Promise.all([currentLang(), currentUser()]);
+  requireLanguageChosen(user, `/invite/${encodeURIComponent(token)}`);
   const invite = await describeInvite(await getDb(), token);
 
   if (!invite || !invite.usable) return <p className="notice error">{t(lang, "invite.invalid")}</p>;

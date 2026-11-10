@@ -44,11 +44,16 @@ Postgres row-level security is not used yet because the app is the only database
 
 ## Login
 
-Email magic links: a random 256-bit token, stored as SHA-256, single use, 15-minute expiry. The emailed URL opens a page with a button, so link-scanning email security tools cannot consume the token. Sessions are random tokens stored hashed, in an httpOnly cookie, 30 days, revocable.
+No passwords. Two ways in:
+
+- **Passkeys** (`domain/passkeys.ts`, `@simplewebauthn/server`): registration needs a signed-in session; sign-in uses discoverable credentials, so the device offers the account without typing an email. Only public keys are stored (`passkeys`). Challenges live in `webauthn_challenges`, single use, 5 minutes, referenced by an httpOnly cookie. The relying-party ID and origin come from `APP_BASE_URL`.
+- **Email magic links**: a random 256-bit token, stored as SHA-256, single use, 15-minute expiry. The emailed URL opens a page with a button, so link-scanning email security tools cannot consume the token. This is also the recovery path for a new or lost phone.
+
+Sessions are random tokens stored hashed in an httpOnly cookie. They end after 60 days without use (sliding expiry) or when revoked; Settings can sign out every other device.
 
 ## Email
 
-`lib/mailer.ts` is the channel adapter. Only the `dev` provider exists: it writes to `outbound_messages` for `/dev/inbox`. Production refuses to start with it.
+`lib/mailer.ts` is the channel adapter. `dev` writes the whole message to `outbound_messages` for `/dev/inbox`; production refuses it. `postmark` sends through Postmark's HTTP API with tracking off and logs delivery status and Postmark's message ID in `outbound_messages`, without the body (sign-in links are secrets).
 
 ## Database environments
 

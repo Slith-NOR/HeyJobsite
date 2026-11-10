@@ -48,6 +48,8 @@ export const users = pgTable("users", {
   displayName: text("display_name").notNull().default(""),
   phone: text("phone"), // unverified contact detail, never used for auth
   preferredLanguage: languageEnum("preferred_language").notNull().default("en"),
+  // Null until the person picks a language themselves (first sign-in shows the chooser).
+  languageChosenAt: timestamp("language_chosen_at", { withTimezone: true }),
   translationEnabled: boolean("translation_enabled").notNull().default(false),
   createdAt: createdAt(),
 });
@@ -251,6 +253,8 @@ export const outboundMessages = pgTable("outbound_messages", {
   provider: text("provider").notNull(),
   status: text("status").notNull().default("queued"),
   attempts: integer("attempts").notNull().default(0),
+  providerMessageId: text("provider_message_id"),
+  lastError: text("last_error"),
   createdAt: createdAt(),
 });
 
@@ -268,3 +272,32 @@ export const auditEvents = pgTable(
   },
   (t) => [index("audit_tenant").on(t.tenantId)],
 );
+
+/** WebAuthn passkeys. The private key never leaves the person's device; only the public key is stored. */
+export const passkeys = pgTable(
+  "passkeys",
+  {
+    id: id(),
+    userId: uuid("user_id").notNull().references(() => users.id),
+    credentialId: text("credential_id").notNull().unique(), // base64url
+    publicKey: text("public_key").notNull(), // base64url COSE key
+    counter: integer("counter").notNull().default(0),
+    transports: jsonb("transports").$type<string[]>(),
+    deviceType: text("device_type").notNull(), // singleDevice | multiDevice
+    backedUp: boolean("backed_up").notNull().default(false),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("passkeys_user").on(t.userId)],
+);
+
+/** Single-use WebAuthn challenges (5 minutes), bound to the browser by a cookie holding the row ID. */
+export const webauthnChallenges = pgTable("webauthn_challenges", {
+  id: id(),
+  purpose: text("purpose").notNull(), // register | login
+  userId: uuid("user_id").references(() => users.id), // set for registration
+  challenge: text("challenge").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: createdAt(),
+});

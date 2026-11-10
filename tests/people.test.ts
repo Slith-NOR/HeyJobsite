@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { outboundMessages } from "@/db/schema";
+import { outboundMessages, users } from "@/db/schema";
 import { getProjectAccess } from "@/domain/access";
-import { consumeLoginLink, requestLoginLink, safeReturnTo, userForSession } from "@/domain/auth";
+import { chooseLanguage, consumeLoginLink, needsLanguageChoice, requestLoginLink, safeReturnTo, updateProfile, userForSession } from "@/domain/auth";
 import { findOrCreateUser } from "@/domain/org";
 import { createInvite, decideAffiliation, describeInvite, pendingAffiliationsFor, redeemInvite } from "@/domain/people";
 import { freshDb, hireWorker, seedTwoTenants } from "./helpers";
@@ -64,7 +64,7 @@ describe("email-link login", () => {
     const { invite } = await createInvite(db, s.adminA, { companyId: s.plumbing.id, role: "worker" });
     await requestLoginLink(db, { email: "New.Person@Example.test", baseUrl: "http://localhost:3000", lang: "es", inviteId: invite.id, returnTo: "/q/abc" });
     const [msg] = await db.select().from(outboundMessages).where(eq(outboundMessages.recipient, "new.person@example.test"));
-    expect(msg.subject).toBe("Su enlace para entrar a Project X");
+    expect(msg.subject).toBe("Su enlace para entrar a HeyJobsite");
     const token = decodeURIComponent(msg.body.match(/token=([^\s]+)/)![1]);
 
     const result = await consumeLoginLink(db, token);
@@ -81,5 +81,29 @@ describe("email-link login", () => {
     expect(safeReturnTo("//evil.test")).toBeNull();
     expect(safeReturnTo("https://evil.test")).toBeNull();
     expect(safeReturnTo("/\\evil.test")).toBeNull();
+  });
+});
+
+describe("first sign-in language choice", () => {
+  it("new people have no language chosen until they pick one, and the choice sticks", async () => {
+    const db = await freshDb();
+    const user = await findOrCreateUser(db, "new.worker@example.test");
+    expect(needsLanguageChoice(user)).toBe(true);
+
+    await chooseLanguage(db, user.id, "ht");
+    const [after] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(after.preferredLanguage).toBe("ht");
+    expect(needsLanguageChoice(after)).toBe(false);
+  });
+
+  it("changing language in Settings also counts as a choice; other profile edits do not", async () => {
+    const db = await freshDb();
+    const user = await findOrCreateUser(db, "other@example.test");
+    await updateProfile(db, user.id, { phone: "+1 555 0199" });
+    let [row] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(needsLanguageChoice(row)).toBe(true);
+    await updateProfile(db, user.id, { preferredLanguage: "es" });
+    [row] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(needsLanguageChoice(row)).toBe(false);
   });
 });

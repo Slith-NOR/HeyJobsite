@@ -6,7 +6,7 @@ import { devToolsEnabled } from "@/lib/config";
 import { currentLang, currentUser } from "@/lib/session";
 import { signOutAction } from "./actions";
 
-export const metadata: Metadata = { title: "Project X", description: "Construction site check-in and accountability" };
+export const metadata: Metadata = { title: "HeyJobsite", description: "Construction site check-in and accountability" };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 export const dynamic = "force-dynamic";
 

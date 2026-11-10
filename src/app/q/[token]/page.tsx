@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getDb } from "@/db";
 import { checkInContext, resolveQrToken } from "@/domain/visits";
 import { t } from "@/i18n";
-import { currentLang, currentUser, formatTime } from "@/lib/session";
+import { currentLang, currentUser, formatTime, requireLanguageChosen } from "@/lib/session";
 import { checkInAction, checkOutAction } from "../../actions";
 import { ErrorNotice } from "../../Notice";
 import { LocationSubmit } from "./LocationSubmit";
@@ -19,6 +19,7 @@ export default async function QrPage({ params, searchParams }: Props) {
   const [user, lang] = await Promise.all([currentUser(), currentLang()]);
   const db = await getDb();
   const self = `/q/${encodeURIComponent(token)}`;
+  requireLanguageChosen(user, self);
 
   if (!user) {
     const exists = await resolveQrToken(db, token);

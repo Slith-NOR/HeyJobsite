@@ -1,14 +1,19 @@
-import { LANGS, t } from "@/i18n";
+import { redirect } from "next/navigation";
+import { safeReturnTo } from "@/domain/auth";
+import { LANGS, passkeyLabels, t } from "@/i18n";
 import { devToolsEnabled } from "@/lib/config";
-import { currentLang } from "@/lib/session";
+import { currentLang, currentUser } from "@/lib/session";
 import { requestLoginAction, setLanguageAction } from "../actions";
 import { ErrorNotice } from "../Notice";
+import { PasskeySignIn } from "../PasskeyButtons";
 
 type Props = { searchParams: Promise<Record<string, string | undefined>> };
 
 export default async function LoginPage({ searchParams }: Props) {
   const sp = await searchParams;
   const lang = await currentLang();
+  // Already signed in on this device (sessions are remembered): go straight on.
+  if (await currentUser()) redirect(safeReturnTo(sp.next) ?? "/");
   const back = `/login${sp.next ? `?next=${encodeURIComponent(sp.next)}` : ""}`;
   return (
     <>
@@ -28,13 +33,17 @@ export default async function LoginPage({ searchParams }: Props) {
           {devToolsEnabled() && <p className="muted">{t(lang, "login.devHint")} <a href="/dev/inbox">/dev/inbox</a></p>}
         </div>
       ) : (
-        <form action={requestLoginAction} className="card">
-          <input type="hidden" name="next" value={sp.next ?? ""} />
-          <input type="hidden" name="invite" value={sp.invite ?? ""} />
-          <label htmlFor="email">{t(lang, "login.email")}</label>
-          <input id="email" name="email" type="email" autoComplete="email" inputMode="email" required />
-          <button className="big" type="submit">{t(lang, "login.send")}</button>
-        </form>
+        <>
+          <PasskeySignIn next={sp.next ?? ""} labels={passkeyLabels(lang, "login.passkey")} />
+          <form action={requestLoginAction} className="card">
+            <p>{t(lang, "login.emailIntro")}</p>
+            <input type="hidden" name="next" value={sp.next ?? ""} />
+            <input type="hidden" name="invite" value={sp.invite ?? ""} />
+            <label htmlFor="email">{t(lang, "login.email")}</label>
+            <input id="email" name="email" type="email" autoComplete="email" inputMode="email" required />
+            <button className="big" type="submit">{t(lang, "login.send")}</button>
+          </form>
+        </>
       )}
     </>
   );

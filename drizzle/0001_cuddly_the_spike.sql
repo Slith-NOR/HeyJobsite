@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "language_chosen_at" timestamp with time zone;

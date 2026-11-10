@@ -28,3 +28,13 @@ export function errorMessage(lang: Lang, code: string): string {
 }
 
 export type { MessageKey };
+
+/** Translated labels for the passkey buttons (client components take plain strings). */
+export function passkeyLabels(lang: Lang, button: MessageKey) {
+  return {
+    button: t(lang, button),
+    working: t(lang, "passkey.working"),
+    cancelled: t(lang, "passkey.cancelled"),
+    failed: t(lang, "passkey.failed"),
+  };
+}

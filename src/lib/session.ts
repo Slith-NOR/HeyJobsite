@@ -2,7 +2,7 @@ import "server-only";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
-import { userForSession } from "@/domain/auth";
+import { needsLanguageChoice, userForSession } from "@/domain/auth";
 import { isLang, type Lang } from "@/i18n";
 import { isProduction } from "./config";
 
@@ -18,7 +18,13 @@ export async function currentUser() {
 export async function requireUser(returnTo?: string) {
   const user = await currentUser();
   if (!user) redirect(returnTo ? `/login?next=${encodeURIComponent(returnTo)}` : "/login");
+  requireLanguageChosen(user, returnTo);
   return user;
+}
+
+/** Sends a signed-in person who has not picked a language yet to the chooser, then back. */
+export function requireLanguageChosen(user: { languageChosenAt: Date | null } | null, returnTo?: string) {
+  if (user && needsLanguageChoice(user)) redirect(returnTo ? `/welcome?next=${encodeURIComponent(returnTo)}` : "/welcome");
 }
 
 /** Signed-in user's preference, else a language cookie, else the browser's Accept-Language. */

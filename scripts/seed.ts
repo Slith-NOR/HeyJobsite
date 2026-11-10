@@ -11,10 +11,11 @@ import { updateProfile } from "@/domain/auth";
 import { appBaseUrl, isProduction } from "@/lib/config";
 import type { DB } from "@/db";
 
-async function hire(db: DB, approverId: string, companyId: string, email: string, name: string, role: "worker" | "supervisor", lang: "en" | "es" | "ht" = "en") {
+// Languages are not preset: each person picks one on first sign-in.
+async function hire(db: DB, approverId: string, companyId: string, email: string, name: string, role: "worker" | "supervisor") {
   const { token } = await createInvite(db, approverId, { companyId, role });
   const user = await findOrCreateUser(db, email, name);
-  await updateProfile(db, user.id, { preferredLanguage: lang, phone: "+1 555 0100" });
+  await updateProfile(db, user.id, { phone: "+1 555 0100" });
   const aff = await redeemInvite(db, user.id, { token });
   await decideAffiliation(db, approverId, aff.id, "approved");
   return user;
@@ -37,8 +38,8 @@ async function main() {
   const h8 = await createProperty(db, admin, project.id, { label: "House 8", address: "8 Demo Oak St", latitude: 28.5389, longitude: -81.3795 });
   await createEngagement(db, admin, { projectId: project.id, hiringCompanyId: a.generalContractor.id, hiredCompanyId: plumbing.id, scope: "Plumbing" });
   await createEngagement(db, admin, { projectId: project.id, hiringCompanyId: plumbing.id, hiredCompanyId: drain.id, scope: "Drain lines" });
-  await hire(db, admin, plumbing.id, "pat@plumbing.test", "Pat (Demo Supervisor)", "supervisor", "es");
-  await hire(db, admin, drain.id, "john@drain.test", "John (Demo Worker)", "worker", "ht");
+  await hire(db, admin, plumbing.id, "pat@plumbing.test", "Pat (Demo Supervisor)", "supervisor");
+  await hire(db, admin, drain.id, "john@drain.test", "John (Demo Worker)", "worker");
   const q12 = await createQrToken(db, admin, h12.id);
   await createQrToken(db, admin, h8.id);
 
@@ -52,8 +53,8 @@ async function main() {
   console.log("Seeded synthetic demo data.");
   console.log("Sign in at /login with any of these (links appear in /dev/inbox):");
   console.log("  admin@alpha.test   Tenant A admin");
-  console.log("  pat@plumbing.test  Supervisor, Demo Plumbing Co (Spanish)");
-  console.log("  john@drain.test    Worker, Demo Drain Sub (Haitian Creole)");
+  console.log("  pat@plumbing.test  Supervisor, Demo Plumbing Co");
+  console.log("  john@drain.test    Worker, Demo Drain Sub");
   console.log("  admin@bravo.test   Tenant B admin");
   console.log(`House 12 check-in link: ${appBaseUrl()}/q/${q12.token}`);
 }

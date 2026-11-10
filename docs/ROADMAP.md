@@ -20,16 +20,19 @@ Done:
 - Project-scoped subcontract engagements; cycle, self-hire, hiring-the-GC and orphan-hirer rejection; per-project chain positions.
 - Supervisor/manager invite links (single use, 7-day expiry, hash stored) shown as link + QR.
 - Pending → approved/rejected affiliations; no self-approval; supervisors approve workers, only managers approve supervisors.
-- Email magic-link login (single use, 15 min, POST confirmation against link scanners), 30-day revocable sessions, sign-out.
+- **No passwords anywhere.** Passkey sign-in (face, fingerprint or screen lock; discoverable credentials, so no email typed) and email magic links (single use, 15 min, POST confirmation against link scanners) as the way in on a new or lost device.
+- Remembered sessions: stay signed in on a device until 60 days without use; revocable. Settings: list/remove passkeys, add one on this device, sign out all other devices.
+- After signing in without a passkey, the home page offers to set one up.
+- First sign-in language chooser (each option written in its own language); change later in Settings.
 - User settings: name, unverified phone, language, translation toggle (stored; translation itself is a later phase).
 
 Not yet:
-- **Passkeys** (primary login per spec). Next step.
+- Passkey sign-in tested only with a software authenticator in automated tests; **not yet on real iPhone/Android devices**.
 - Contact directory screen and ContactPolicy enforcement (table exists, not used yet).
 - Adding further managers through the UI (domain function `addTenantMember` exists; no screen).
 - Delegated approval down the chain (a supervisor approving a lower-tier company's workers).
-- Real email provider (open decision).
-- Session list / revoke other devices.
+- Postmark sending is built and tested against a fake Postmark; **not yet sent for real** (waiting for the Postmark account and DNS records).
+- Per-device session list (only "sign out all other devices" exists).
 
 ## Phase 2 — Check-in/out and attendance: partial (QR method done)
 

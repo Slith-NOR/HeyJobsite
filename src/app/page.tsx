@@ -3,22 +3,25 @@ import { getDb } from "@/db";
 import { myTenants } from "@/domain/org";
 import { myAffiliations, pendingAffiliationsFor } from "@/domain/people";
 import { openVisitFor } from "@/domain/visits";
-import { t } from "@/i18n";
+import { listPasskeys } from "@/domain/passkeys";
+import { passkeyLabels, t } from "@/i18n";
 import { requireUser } from "@/lib/session";
 import { checkOutAction, decideAffiliationAction } from "./actions";
 import { InviteButton } from "./InviteButton";
 import { ErrorNotice } from "./Notice";
+import { PasskeySetup } from "./PasskeyButtons";
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
   const user = await requireUser();
   const lang = user.preferredLanguage;
   const db = await getDb();
-  const [tenants, affiliations, pending, open] = await Promise.all([
+  const [tenants, affiliations, pending, open, keys] = await Promise.all([
     myTenants(db, user.id),
     myAffiliations(db, user.id),
     pendingAffiliationsFor(db, user.id),
     openVisitFor(db, user.id),
+    listPasskeys(db, user.id),
   ]);
   const supervised = affiliations.filter((a) => a.affiliation.status === "approved" && a.affiliation.role === "supervisor");
 
@@ -27,6 +30,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
       <h1>{t(lang, "home.welcome", { name: user.displayName || user.email })}</h1>
       <ErrorNotice lang={lang} code={sp.error} />
       {sp.accepted && <p className="notice">{t(lang, "invite.accepted")}</p>}
+      {sp.passkeyAdded && <p className="notice">{t(lang, "passkey.added")}</p>}
+      {keys.length === 0 && (
+        <PasskeySetup
+          labels={passkeyLabels(lang, "passkey.setupButton")}
+          doneHref="/?passkeyAdded=1"
+          title={t(lang, "passkey.setupTitle")}
+          body={t(lang, "passkey.setupBody")}
+        />
+      )}
 
       {open ? (
         <div className="card">

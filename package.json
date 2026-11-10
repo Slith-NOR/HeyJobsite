@@ -1,5 +1,5 @@
 {
-  "name": "project-x",
+  "name": "heyjobsite",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.15",
+    "@simplewebauthn/browser": "^14.0.0",
+    "@simplewebauthn/server": "^14.1.0",
     "drizzle-orm": "^0.45.4",
     "next": "^16.4.5",
     "postgres": "^4.1.0",

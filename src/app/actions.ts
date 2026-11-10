@@ -4,14 +4,14 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import QRCode from "qrcode";
 import { getDb } from "@/db";
-import { SESSION_DAYS, consumeLoginLink, requestLoginLink, revokeSession, safeReturnTo, updateProfile } from "@/domain/auth";
+import { SESSION_COOKIE_DAYS, chooseLanguage, consumeLoginLink, needsLanguageChoice, requestLoginLink, revokeSession, safeReturnTo, updateProfile } from "@/domain/auth";
 import { createCompany, createEngagement, createProject, createProperty } from "@/domain/org";
 import { createInvite, decideAffiliation, describeInvite, redeemInvite } from "@/domain/people";
 import { type LocationReading, checkIn, checkOut, createQrToken, revokeQrToken } from "@/domain/visits";
 import { isLang } from "@/i18n";
 import { appBaseUrl } from "@/lib/config";
 import { DomainError } from "@/lib/errors";
-import { LANG_COOKIE, SESSION_COOKIE, currentLang, requireUser, setSessionCookie } from "@/lib/session";
+import { LANG_COOKIE, SESSION_COOKIE, currentLang, currentUser, requireUser, setSessionCookie } from "@/lib/session";
 
 const str = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 const num = (fd: FormData, k: string) => {
@@ -72,9 +72,10 @@ export async function consumeLoginAction(fd: FormData) {
   const db = await getDb();
   let target = "/";
   try {
-    const { sessionToken, returnTo } = await consumeLoginLink(db, str(fd, "token"));
-    await setSessionCookie(sessionToken, SESSION_DAYS * 86400);
+    const { sessionToken, returnTo, user } = await consumeLoginLink(db, str(fd, "token"));
+    await setSessionCookie(sessionToken, SESSION_COOKIE_DAYS * 86400);
     target = returnTo ?? "/";
+    if (needsLanguageChoice(user)) target = `/welcome?next=${encodeURIComponent(target)}`;
   } catch (e) {
     if (e instanceof DomainError) redirect("/login?error=login_link_invalid");
     throw e;
@@ -94,6 +95,17 @@ export async function setLanguageAction(fd: FormData) {
   const lang = str(fd, "lang");
   if (isLang(lang)) (await cookies()).set(LANG_COOKIE, lang, { path: "/", maxAge: 365 * 86400, sameSite: "lax" });
   redirect(safeReturnTo(str(fd, "back")) ?? "/");
+}
+
+export async function chooseLanguageAction(fd: FormData) {
+  const next = safeReturnTo(str(fd, "next")) ?? "/";
+  const user = await currentUser();
+  if (!user) redirect(`/login?next=${encodeURIComponent(next)}`);
+  const lang = str(fd, "lang");
+  if (!isLang(lang)) redirect(`/welcome?next=${encodeURIComponent(next)}`);
+  await chooseLanguage(await getDb(), user.id, lang);
+  (await cookies()).set(LANG_COOKIE, lang, { path: "/", maxAge: 365 * 86400, sameSite: "lax" });
+  redirect(next);
 }
 
 export async function saveSettingsAction(fd: FormData) {
